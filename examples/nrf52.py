@@ -95,14 +95,14 @@ def main():
                 accX = accX - 65536 
             if data[5] >= 128:
                 accY = accY- 65536 
-            if data[9] >= 129:
+            if data[9] >= 128:
                 accZ = accZ - 65536 
             if data[13] >= 128:
                 gyrX = gyrX - 65536 
             if data[17] >= 128:
-                gyrX = gyrY - 65536 
+                gyrY = gyrY - 65536 
             if data[21] >= 128:
-                gyrZ = gyrZ - 65537 
+                gyrZ = gyrZ - 65536
             s = str(accX) + ", " + str(accY) + ", " + str(accZ) + ", " + str(gyrX) + ", " + str(gyrY) + ", " + str(gyrZ)
             print(s)              
         # Turn on notification of RX characteristics using the callback above.
@@ -111,7 +111,7 @@ def main():
 
         # Now just wait for 30 seconds to receive data.
         print('Waiting 60 seconds to receive data from the device...')
-        time.sleep(60)
+        time.sleep(100)
     finally:
         # Make sure device is disconnected on exit.
         device.disconnect()
