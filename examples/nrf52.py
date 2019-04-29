@@ -22,6 +22,21 @@ RX_CHAR_UUID      = uuid.UUID('6E400003-B5A3-F393-E0A9-E50E24DCCA9E')
 # Get the BLE provider for the current platform.
 ble = Adafruit_BluefruitLE.get_provider()
 
+import datetime
+import time
+
+current_milli_time = lambda: int(round(time.time() * 1000))
+prevTime = current_milli_time()
+
+import atexit
+
+def exit_handler():
+    print('My application is ending!') 
+    if device is not None:
+        print('Device disconnected!')
+        device.disconnect()
+
+atexit.register(exit_handler)
 
 # Main function implements the program logic so it can run in a background
 # thread.  Most platforms require the main thread to handle GUI events and other
@@ -82,15 +97,25 @@ def main():
         # be called on a different thread so be careful to make sure state that
         # the function changes is thread safe.  Use queue or other thread-safe
         # primitives to send data to other threads.
+        prevTime = current_milli_time()
         def received(data):
+            global prevTime
+            currTime = current_milli_time() 
+            delta = currTime - prevTime
+            #print('delta: %sms' % (delta))
+            print(datetime.datetime.utcnow())
+            prevTime = currTime 
             print('Received: {0}'.format(data))
-            print(len(data))
+            #print(data[0])
+            #data = data[0].split(',')
+            print(type(data))
             accX = data[0]+(data[1]<<8)+(data[2]<<16)+(data[3]<<24)
             accY = data[4]+(data[5]<<8)+(data[6]<<16)+(data[7]<<24)
             accZ = data[8]+(data[9]<<8)+(data[10]<<16)+(data[11]<<24)
             gyrX = data[12]+(data[13]<<8)+(data[14]<<16)+(data[15]<<24)
             gyrY = data[16]+(data[17]<<8)+(data[18]<<16)+(data[19]<<24)
             gyrZ = data[20]+(data[21]<<8)+(data[22]<<16)+(data[23]<<24)
+            vbat = data[24]+(data[25]<<8)+(data[26]<<16)+(data[27]<<24)
             if data[1] >= 128:
                 accX = accX - 65536 
             if data[5] >= 128:
@@ -103,7 +128,7 @@ def main():
                 gyrY = gyrY - 65536 
             if data[21] >= 128:
                 gyrZ = gyrZ - 65536
-            s = str(accX) + ", " + str(accY) + ", " + str(accZ) + ", " + str(gyrX) + ", " + str(gyrY) + ", " + str(gyrZ)
+            s = str(accX) + ", " + str(accY) + ", " + str(accZ) + ", " + str(gyrX) + ", " + str(gyrY) + ", " + str(gyrZ) + ", " + str(vbat)
             print(s)              
         # Turn on notification of RX characteristics using the callback above.
         print('Subscribing to RX characteristic changes...')
@@ -111,15 +136,15 @@ def main():
 
         # Now just wait for 30 seconds to receive data.
         print('Waiting 60 seconds to receive data from the device...')
-        time.sleep(100)
+        while(True):
+            continue
+#        time.sleep(100)
     finally:
+        print("done")
         # Make sure device is disconnected on exit.
-        device.disconnect()
-
-
+        #device.disconnect()
 # Initialize the BLE system.  MUST be called before other BLE calls!
 ble.initialize()
-
 # Start the mainloop to process BLE events, and run the provided function in
 # a background thread.  When the provided main function stops running, returns
 # an integer status code, or throws an error the program will exit.
